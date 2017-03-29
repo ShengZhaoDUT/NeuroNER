@@ -179,10 +179,18 @@ def main():
             token_list_file_path = os.path.join(model_folder, 'tensorboard_metadata_tokens.tsv')
             tensorboard_token_embeddings.metadata_path = os.path.relpath(token_list_file_path, '..')
 
-            tensorboard_character_embeddings = embeddings_projector_config.embeddings.add()
-            tensorboard_character_embeddings.tensor_name = model.character_embedding_weights.name
-            character_list_file_path = os.path.join(model_folder, 'tensorboard_metadata_characters.tsv')
-            tensorboard_character_embeddings.metadata_path = os.path.relpath(character_list_file_path, '..')
+            if parameters['use_character_lstm']:
+                tensorboard_character_embeddings = embeddings_projector_config.embeddings.add()
+                tensorboard_character_embeddings.tensor_name = model.character_embedding_weights.name
+                character_list_file_path = os.path.join(model_folder, 'tensorboard_metadata_characters.tsv')
+                tensorboard_character_embeddings.metadata_path = os.path.relpath(character_list_file_path, '..')
+                character_list_file = codecs.open(character_list_file_path,'w', 'UTF-8')
+                for character_index in range(dataset.alphabet_size):
+                    if character_index == dataset.PADDING_CHARACTER_INDEX:
+                        character_list_file.write('PADDING\n')
+                    else:
+                        character_list_file.write('{0}\n'.format(dataset.index_to_character[character_index]))
+                character_list_file.close()
 
             projector.visualize_embeddings(embedding_writer, embeddings_projector_config)
 
@@ -191,14 +199,6 @@ def main():
             for token_index in range(dataset.vocabulary_size):
                 token_list_file.write('{0}\n'.format(dataset.index_to_token[token_index]))
             token_list_file.close()
-
-            character_list_file = codecs.open(character_list_file_path,'w', 'UTF-8')
-            for character_index in range(dataset.alphabet_size):
-                if character_index == dataset.PADDING_CHARACTER_INDEX:
-                    character_list_file.write('PADDING\n')
-                else:
-                    character_list_file.write('{0}\n'.format(dataset.index_to_character[character_index]))
-            character_list_file.close()
 
 
             # Initialize the model
